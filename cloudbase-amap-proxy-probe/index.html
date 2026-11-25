@@ -1,0 +1,30 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>高德 JSAPI 安全代理验证</title>
+<style>
+  body { max-width: 44rem; margin: 1.5rem auto; padding: 0 1rem; font: 1rem/1.55 system-ui, sans-serif; }
+  label, input { display: block; }
+  input { box-sizing: border-box; width: 100%; margin: .3rem 0 1rem; padding: .6rem; font: inherit; }
+  button { padding: .55rem 1rem; font: inherit; }
+  #map { height: 260px; margin: 1rem 0; background: #edf2f5; }
+  li { margin: .35rem 0; }
+</style>
+<main>
+  <h1>高德 JSAPI 安全代理验证</h1>
+  <p>使用固定的北京公共地点样本。切换配置或重新测试时，请刷新页面。</p>
+  <form id="setup" autocomplete="off">
+    <label for="host">CloudBase HTTPS 代理地址</label>
+    <input id="host" type="url" required placeholder="https://网关域名/_AMapService" autocapitalize="off" spellcheck="false">
+    <label for="key">新建的高德 Web 端 JS API Key</label>
+    <input id="key" type="password" required minlength="16" maxlength="128" autocomplete="off">
+    <button>运行验证</button>
+  </form>
+  <p id="status" role="status"></p>
+  <div id="map" aria-label="北京测试地图"></div>
+  <ul id="results" aria-live="polite"></ul>
+</main>
+<script type="module" src="./probe.mjs"></script>
+</html>
