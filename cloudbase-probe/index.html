@@ -1,0 +1,67 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CloudBase HTTP 网关测试</title>
+<style>
+  body { max-width: 42rem; margin: 2rem auto; padding: 0 1rem; font: 1rem/1.55 system-ui, sans-serif; }
+  label, input { display: block; }
+  input { box-sizing: border-box; width: 100%; margin: .35rem 0 1rem; padding: .65rem; font: inherit; }
+  button { padding: .55rem 1rem; font: inherit; }
+  pre { padding: .8rem; background: #f0f4f6; white-space: pre-wrap; overflow-wrap: anywhere; }
+</style>
+<main>
+  <h1>CloudBase HTTP 网关测试</h1>
+  <p id="origin"></p>
+  <form id="probe">
+    <label for="base">CloudBase HTTPS 基础地址</label>
+    <input id="base" type="url" required placeholder="https://网关域名/vlife-http-probe" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <button>开始测试</button>
+  </form>
+  <p id="status" role="status"></p>
+  <pre id="results" aria-label="接口测试结果"></pre>
+</main>
+<script type="module">
+  import { gatewayBase, probe } from './probe.mjs'
+
+  const form = document.querySelector('#probe')
+  const input = document.querySelector('#base')
+  const button = form.querySelector('button')
+  const status = document.querySelector('#status')
+  const results = document.querySelector('#results')
+  const approvedOrigin = location.origin === 'https://vvspicesh.github.io'
+  document.querySelector('#origin').textContent = '当前页面来源 ' + location.origin
+  if (!approvedOrigin) {
+    status.textContent = '请从 https://vvspicesh.github.io 下的独立测试页运行。'
+    button.disabled = true
+  }
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault()
+    if (!approvedOrigin) return
+    results.textContent = ''
+    let base
+    try {
+      base = gatewayBase(input.value)
+      if (new URL(base).origin === location.origin) throw new Error()
+    } catch {
+      status.textContent = '请输入跨域 HTTPS 基础地址，保留路由前缀，去掉接口名、凭据、查询参数和片段。'
+      return
+    }
+    button.disabled = true
+    status.textContent = '测试中…'
+    const outcomes = await Promise.all(['health', 'cors-test'].map((endpoint) => probe(base, endpoint)))
+    results.textContent = outcomes.map((item) => [
+      '/' + item.endpoint,
+      'HTTP 状态 ' + (item.status ?? '浏览器未提供'),
+      '响应类型 ' + (item.responseType ?? '—'),
+      'Content-Type ' + (item.contentType ?? '—'),
+      '耗时 ' + item.elapsedMs + ' ms',
+      '服务端时间 ' + (item.serverTime ?? '—'),
+      '错误 ' + (item.error ?? '无'),
+    ].join('\n')).join('\n\n')
+    status.textContent = outcomes.every((item) => !item.error) ? '两项通过' : '存在失败项'
+    button.disabled = false
+  })
+</script>
+</html>
